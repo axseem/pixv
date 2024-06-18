@@ -24,7 +24,7 @@ Simply takes every pixel from image and draws square for each. Produces large si
 ![pixv_square](./assets/pixv_square.svg)
 
 ```
-original (png): 2912 bytes
+original (png): 268 bytes
 vectorized:     4495 bytes
 ```
 
@@ -35,7 +35,7 @@ Similar to the previous one, but instead of drawing each pixel separately, it co
 ![pixv_rectangle](./assets/pixv_rectangle.svg)
 
 ```
-original (png): 2912 bytes
+original (png): 268 bytes
 vectorized:     2035 bytes
 ```
 
