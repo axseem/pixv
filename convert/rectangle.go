@@ -5,13 +5,11 @@ import (
 	"image"
 	"slices"
 	"sort"
-	"strconv"
 	"strings"
 )
 
 type Rect struct {
-	x      int
-	y      int
+	pos    Point
 	width  int
 	height int
 	color  uint32
@@ -58,18 +56,18 @@ func Rectangle(img image.Image, scale uint) (string, error) {
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			if slices.ContainsFunc(rectangles, func(rect Rect) bool {
-				return x >= rect.x && x < rect.x+rect.width && y >= rect.y && y < rect.y+rect.height
+				return x >= rect.pos.x && x < rect.pos.x+rect.width && y >= rect.pos.y && y < rect.pos.y+rect.height
 			}) {
 				continue
 			}
 
-			color := RGBAtoColor(img.At(x, y).RGBA())
+			color := RGBAToColor(img.At(x, y).RGBA())
 			width, height := findChunk(img, x, y, func(x, y int) bool {
 				return slices.ContainsFunc(rectangles, func(rect Rect) bool {
-					return x >= rect.x && x < rect.x+rect.width && y >= rect.y && y < rect.y+rect.height
+					return x >= rect.pos.x && x < rect.pos.x+rect.width && y >= rect.pos.y && y < rect.pos.y+rect.height
 				})
 			})
-			rectangles = append(rectangles, Rect{x, y, width, height, color})
+			rectangles = append(rectangles, Rect{Point{x, y}, width, height, color})
 		}
 	}
 
@@ -99,19 +97,19 @@ func Rectangle(img image.Image, scale uint) (string, error) {
 	)
 
 	prevColor := rectangles[0].color
-	svg.WriteString(`<g fill="#` + strconv.FormatInt(int64(prevColor), 16) + `">`)
+	svg.WriteString(`<g fill="` + ColorToHex(prevColor) + `">`)
 
 	for _, rect := range rectangles {
 		if rect.color != prevColor {
 			prevColor = rect.color
 			svg.WriteString("</g>")
-			svg.WriteString(`<g fill="#` + strconv.FormatInt(int64(rect.color), 16) + `">`)
+			svg.WriteString(`<g fill="` + ColorToHex(rect.color) + `">`)
 		}
 		svg.WriteString(
 			fmt.Sprintf(
 				`<path d="m%d,%dh%dv%dh-%d"/>`,
-				rect.x*int(scale),
-				rect.y*int(scale),
+				rect.pos.x*int(scale),
+				rect.pos.y*int(scale),
 				rect.width*int(scale),
 				rect.height*int(scale),
 				rect.width*int(scale),

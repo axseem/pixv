@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"image"
 	"sort"
-	"strconv"
 	"strings"
 )
 
 type Pixel struct {
-	x, y  int
+	pos   Point
 	color uint32
 }
 
@@ -23,8 +22,8 @@ func Square(img image.Image, scale uint) (string, error) {
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			color := RGBAtoColor(img.At(x, y).RGBA())
-			pixels = append(pixels, Pixel{x, y, color})
+			color := RGBAToColor(img.At(x, y).RGBA())
+			pixels = append(pixels, Pixel{Point{x, y}, color})
 		}
 	}
 
@@ -43,19 +42,19 @@ func Square(img image.Image, scale uint) (string, error) {
 	)
 
 	prevColor := pixels[0].color
-	svg.WriteString(`<g fill="#` + strconv.FormatInt(int64(prevColor), 16) + `">`)
+	svg.WriteString(`<g fill="` + ColorToHex(prevColor) + `">`)
 
 	for _, pixel := range pixels {
 		if pixel.color != prevColor {
 			prevColor = pixel.color
 			svg.WriteString("</g>")
-			svg.WriteString(`<g fill="#` + strconv.FormatInt(int64(pixel.color), 16) + `">`)
+			svg.WriteString(`<g fill="` + ColorToHex(pixel.color) + `">`)
 		}
 		svg.WriteString(
 			fmt.Sprintf(
 				`<path d="m%d,%dh%dv%dh-%d"/>`,
-				pixel.x*int(scale),
-				pixel.y*int(scale),
+				pixel.pos.x*int(scale),
+				pixel.pos.y*int(scale),
 				scale,
 				scale,
 				scale,

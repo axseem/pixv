@@ -41,9 +41,16 @@ vectorized:     2035 bytes
 
 ### Path
 
->  In development
+The third method is the most efficient and it is used by default. It draws path around chunks of the same color instead of breaking that chunk in a bunch of rectangles like Greedy algorithm do.
 
-There is also third the most efficient method that will draw path around chunks of the same color instead of breaking that chunk in a bunch of rectangles like Greedy algorithm do.
+![pixv_path](./assets/pixv_path.svg)
+
+```
+original (png): 268 bytes
+vectorized:     1833 bytes
+```
+
+At the moment, Path puts inner shapes on top without cutting holes in the underneath shape. That makes grouping by color impossible. That also means that transparency is not gonna work as intended.
 
 # How to use?
 
@@ -55,9 +62,11 @@ pixv image.png
 
 You can use flags to customize the result
 
-- `--method [method]`, `-m [method]` - Choose vectorization method. Accepts `square` or `rectangle`. Default method is `rectangle`
+- `--method [method]`, `-m [method]` - Choose vectorization method. Accepts `square` or `rectangle`. Default method is `path`
 
 - `--scale [multiplier]`, `-s [multiplier]` - Change the scale of the pixels. Currently accepts only `integers`. Default multiplier is `1`
+
+For more information use `pixv help`
 
 # How to build?
 

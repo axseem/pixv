@@ -28,8 +28,8 @@ func main() {
 				Name:        "method",
 				Aliases:     []string{"m"},
 				Usage:       "Choose vectorization method",
-				Value:       "rectangle",
-				DefaultText: "rectangle",
+				Value:       "path",
+				DefaultText: "path",
 			},
 			&cli.StringFlag{
 				Name:        "scale",
@@ -62,7 +62,12 @@ func main() {
 			}
 
 			var svgString string
-			if cCtx.String("method") == "rectangle" {
+			if cCtx.String("method") == "path" {
+				svgString, err = convert.Path(img, uint(scale))
+				if err != nil {
+					return err
+				}
+			} else if cCtx.String("method") == "rectangle" {
 				svgString, err = convert.Rectangle(img, uint(scale))
 				if err != nil {
 					return err
