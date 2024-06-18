@@ -41,7 +41,7 @@ vectorized:     2035 bytes
 
 ### Path
 
-The third method is the most efficient and it is used by default. It draws path around chunks of the same color instead of breaking that chunk in a bunch of rectangles like Greedy algorithm do.
+The third method is the most efficient and it is used by default. It draws path around chunks of the same color instead of breaking that chunk in a bunch of rectangles like Rectangle algorithm do.
 
 ![pixv_path](./assets/pixv_path.svg)
 
