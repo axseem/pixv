@@ -96,8 +96,8 @@ func Rectangle(img image.Image, scale uint) (string, error) {
 					rect.width*int(scale),
 				),
 			)
-			anchorPos.x = 0 - rect.pos.x
-			anchorPos.y = 0 - rect.pos.y - rect.height
+			anchorPos.x = -rect.pos.x
+			anchorPos.y = -rect.pos.y - rect.height
 		}
 		svg.WriteString(`"/>`)
 

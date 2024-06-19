@@ -25,7 +25,7 @@ Simply takes every pixel from image and draws square for each. Produces large si
 
 ```
 original (png): 268 bytes
-vectorized:     4495 bytes
+vectorized:     2577 bytes
 ```
 
 ### Rectangle

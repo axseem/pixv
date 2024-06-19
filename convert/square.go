@@ -3,14 +3,8 @@ package convert
 import (
 	"fmt"
 	"image"
-	"sort"
 	"strings"
 )
-
-type Pixel struct {
-	pos   Point
-	color uint32
-}
 
 func Square(img image.Image, scale uint) (string, error) {
 	if scale == 0 {
@@ -18,18 +12,14 @@ func Square(img image.Image, scale uint) (string, error) {
 	}
 
 	bounds := img.Bounds()
-	pixels := []Pixel{}
+	pixelsMap := make(map[uint32][]Point)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			color := RGBAToColor(img.At(x, y).RGBA())
-			pixels = append(pixels, Pixel{Point{x, y}, color})
+			pixelsMap[color] = append(pixelsMap[color], Point{x, y})
 		}
 	}
-
-	sort.Slice(pixels, func(i, j int) bool {
-		return pixels[i].color < pixels[j].color
-	})
 
 	var svg strings.Builder
 
@@ -41,28 +31,27 @@ func Square(img image.Image, scale uint) (string, error) {
 		),
 	)
 
-	prevColor := pixels[0].color
-	svg.WriteString(`<g fill="` + ColorToHex(prevColor) + `">`)
-
-	for _, pixel := range pixels {
-		if pixel.color != prevColor {
-			prevColor = pixel.color
-			svg.WriteString("</g>")
-			svg.WriteString(`<g fill="` + ColorToHex(pixel.color) + `">`)
+	for color, pixels := range pixelsMap {
+		svg.WriteString(`<path fill="` + ColorToHex(color) + `" d="`)
+		anchorPos := Point{}
+		for _, pixel := range pixels {
+			svg.WriteString(
+				fmt.Sprintf(
+					`m%d,%dh%dv%dh-%d`,
+					(anchorPos.x+pixel.x)*int(scale),
+					(anchorPos.y+pixel.y)*int(scale),
+					scale,
+					scale,
+					scale,
+				),
+			)
+			anchorPos.x = -pixel.x
+			anchorPos.y = -pixel.y - 1
 		}
-		svg.WriteString(
-			fmt.Sprintf(
-				`<path d="m%d,%dh%dv%dh-%d"/>`,
-				pixel.pos.x*int(scale),
-				pixel.pos.y*int(scale),
-				scale,
-				scale,
-				scale,
-			),
-		)
+		svg.WriteString(`"/>`)
+
 	}
 
-	svg.WriteString("</g>")
 	svg.WriteString("</svg>")
 
 	return svg.String(), nil
