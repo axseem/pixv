@@ -3,7 +3,6 @@ package convert
 import (
 	"fmt"
 	"image"
-	"slices"
 	"sort"
 	"strings"
 )
@@ -15,15 +14,16 @@ type Rect struct {
 	color  uint32
 }
 
-func findChunk(img image.Image, x, y int, occupied func(x, y int) bool) (int, int) {
-	r, g, b, _ := img.At(x, y).RGBA()
+func findChunk(img image.Image, x, y int, visited *[][]bool) (int, int) {
+	color := RGBAToColor(img.At(x, y).RGBA())
 	width := 0
 	for i := 1; x+i <= img.Bounds().Max.X; i++ {
-		nr, ng, nb, _ := img.At(x+i, y).RGBA()
+		nextColor := RGBAToColor(img.At(x+i, y).RGBA())
 		// TODO make occupation check optional.
 		// Disabling occupation check will lead to overlapping
 		// of some chunks but will produce smaller file size.
-		if nr != r || ng != g || nb != b || occupied(x+i, y) {
+		(*visited)[y][x+i-1] = true
+		if color != nextColor || (*visited)[y][x+i] {
 			width += i
 			break
 		}
@@ -34,11 +34,15 @@ func findChunk(img image.Image, x, y int, occupied func(x, y int) bool) (int, in
 line:
 	for i := 1; y+i <= img.Bounds().Max.Y; i++ {
 		for j := 0; j < width; j++ {
-			nr, ng, nb, _ := img.At(x+j, y+i).RGBA()
-			if nr != r || ng != g || nb != b {
+			nextColor := RGBAToColor(img.At(x+j, y+i).RGBA())
+
+			if color != nextColor {
 				height += i
 				break line
 			}
+		}
+		for j := 0; j < width; j++ {
+			(*visited)[y+i][x+j] = true
 		}
 	}
 
@@ -53,20 +57,19 @@ func Rectangle(img image.Image, scale uint) (string, error) {
 	bounds := img.Bounds()
 	rectangles := []Rect{}
 
+	visited := make([][]bool, bounds.Max.Y)
+	for i := range visited {
+		visited[i] = make([]bool, bounds.Max.X)
+	}
+
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			if slices.ContainsFunc(rectangles, func(rect Rect) bool {
-				return x >= rect.pos.x && x < rect.pos.x+rect.width && y >= rect.pos.y && y < rect.pos.y+rect.height
-			}) {
+			if visited[y][x] {
 				continue
 			}
 
 			color := RGBAToColor(img.At(x, y).RGBA())
-			width, height := findChunk(img, x, y, func(x, y int) bool {
-				return slices.ContainsFunc(rectangles, func(rect Rect) bool {
-					return x >= rect.pos.x && x < rect.pos.x+rect.width && y >= rect.pos.y && y < rect.pos.y+rect.height
-				})
-			})
+			width, height := findChunk(img, x, y, &visited)
 			rectangles = append(rectangles, Rect{Point{x, y}, width, height, color})
 		}
 	}
