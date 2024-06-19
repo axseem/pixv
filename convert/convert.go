@@ -69,6 +69,9 @@ func ColorToHex(color uint32) string {
 	for len(hex) < 8 {
 		hex = "0" + hex
 	}
+	if hex[6:] == "ff" {
+		hex = hex[:6]
+	}
 	return "#" + hex
 }
 
