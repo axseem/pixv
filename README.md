@@ -36,7 +36,7 @@ Similar to the previous one, but instead of drawing each pixel separately, it co
 
 ```
 original (png): 268 bytes
-vectorized:     2035 bytes
+vectorized:     1322 bytes
 ```
 
 ### Path

@@ -3,7 +3,6 @@ package convert
 import (
 	"fmt"
 	"image"
-	"sort"
 	"strings"
 )
 
@@ -11,7 +10,6 @@ type Rect struct {
 	pos    Point
 	width  int
 	height int
-	color  uint32
 }
 
 func findChunk(img image.Image, x, y int, visited *[][]bool) (int, int) {
@@ -55,7 +53,7 @@ func Rectangle(img image.Image, scale uint) (string, error) {
 	}
 
 	bounds := img.Bounds()
-	rectangles := []Rect{}
+	rectanglesMap := make(map[uint32][]Rect)
 
 	visited := make([][]bool, bounds.Max.Y)
 	for i := range visited {
@@ -70,24 +68,9 @@ func Rectangle(img image.Image, scale uint) (string, error) {
 
 			color := RGBAToColor(img.At(x, y).RGBA())
 			width, height := findChunk(img, x, y, &visited)
-			rectangles = append(rectangles, Rect{Point{x, y}, width, height, color})
+			rectanglesMap[color] = append(rectanglesMap[color], Rect{Point{x, y}, width, height})
 		}
 	}
-
-	sort.Slice(rectangles, func(i, j int) bool {
-		a := rectangles[i]
-		b := rectangles[j]
-
-		if a.color != b.color {
-			return a.color < b.color
-		}
-
-		if a.height != b.height {
-			return a.height < b.height
-		}
-
-		return a.width < b.width
-	})
 
 	var svg strings.Builder
 
@@ -99,28 +82,27 @@ func Rectangle(img image.Image, scale uint) (string, error) {
 		),
 	)
 
-	prevColor := rectangles[0].color
-	svg.WriteString(`<g fill="` + ColorToHex(prevColor) + `">`)
-
-	for _, rect := range rectangles {
-		if rect.color != prevColor {
-			prevColor = rect.color
-			svg.WriteString("</g>")
-			svg.WriteString(`<g fill="` + ColorToHex(rect.color) + `">`)
+	for color, rectangles := range rectanglesMap {
+		svg.WriteString(`<path fill="` + ColorToHex(color) + `" d="`)
+		anchorPos := Point{}
+		for _, rect := range rectangles {
+			svg.WriteString(
+				fmt.Sprintf(
+					`m%d,%dh%dv%dh-%d`,
+					(anchorPos.x+rect.pos.x)*int(scale),
+					(anchorPos.y+rect.pos.y)*int(scale),
+					rect.width*int(scale),
+					rect.height*int(scale),
+					rect.width*int(scale),
+				),
+			)
+			anchorPos.x = 0 - rect.pos.x
+			anchorPos.y = 0 - rect.pos.y - rect.height
 		}
-		svg.WriteString(
-			fmt.Sprintf(
-				`<path d="m%d,%dh%dv%dh-%d"/>`,
-				rect.pos.x*int(scale),
-				rect.pos.y*int(scale),
-				rect.width*int(scale),
-				rect.height*int(scale),
-				rect.width*int(scale),
-			),
-		)
+		svg.WriteString(`"/>`)
+
 	}
 
-	svg.WriteString("</g>")
 	svg.WriteString("</svg>")
 
 	return svg.String(), nil
