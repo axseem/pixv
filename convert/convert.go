@@ -12,11 +12,10 @@ import (
 
 type Direction uint8
 
-// for global direction FORWARD can be used as UP and BACKWARD as DOWN
 const (
-	FORWARD Direction = iota
+	UP Direction = iota
 	RIGHT
-	BACKWARD
+	DOWN
 	LEFT
 )
 
@@ -24,18 +23,8 @@ func (d Direction) rotated(r Direction) Direction {
 	return (d + r) % 4
 }
 
-func (d Direction) String() string {
-	switch d {
-	case FORWARD:
-		return "Forward"
-	case RIGHT:
-		return "Right"
-	case BACKWARD:
-		return "Backward"
-	case LEFT:
-		return "Left"
-	}
-	panic("unreachable")
+func (d *Direction) rotate(r Direction) {
+	*d = d.rotated(r)
 }
 
 type Point struct {
@@ -46,18 +35,26 @@ func (p Point) xy() (int, int) {
 	return p.x, p.y
 }
 
-func (p Point) moved(d Direction) Point {
+func (p Point) movedN(d Direction, n int) Point {
 	switch d {
-	case FORWARD:
-		return Point{p.x, p.y - 1}
+	case UP:
+		return Point{p.x, p.y - n}
 	case RIGHT:
-		return Point{p.x + 1, p.y}
-	case BACKWARD:
-		return Point{p.x, p.y + 1}
+		return Point{p.x + n, p.y}
+	case DOWN:
+		return Point{p.x, p.y + n}
 	case LEFT:
-		return Point{p.x - 1, p.y}
+		return Point{p.x - n, p.y}
 	}
 	panic("unreachable")
+}
+
+func (p Point) moved(d Direction) Point {
+	return p.movedN(d, 1)
+}
+
+func (p *Point) move(d Direction) {
+	*p = p.moved(d)
 }
 
 func RGBAToColor(r, g, b, a uint32) uint32 {
@@ -93,4 +90,8 @@ func OpenImage(file string) (image.Image, error) {
 	}
 
 	return img, nil
+}
+
+func ColorAt(img image.Image, p Point) uint32 {
+	return RGBAToColor(img.At(p.xy()).RGBA())
 }

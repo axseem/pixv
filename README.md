@@ -1,56 +1,49 @@
 <div align="center">
     <img alt="pixv" width="285" src="./assets/logo.svg">
-    <p><i>Pixel art vectorization tool</i></p>
+    <p><i>Vectorize your pixel art</i></p>
 </div>
 
 # What?
 
-A CLI tool for converting raster pictures into vector format. The app can convert any PNG/JPEG images but for use with pixel art. Using photos or any other images with a high pixel density, a wide range of colors, or small chunks of adjacent pixels might not produce the desired result.
+A CLI tool for converting raster pictures into SVG. The tool can convert any PNG/JPEG images but the first priority is pixel art. Using photos or any other images with a high pixel density, a wide range of colors, or small chunks of adjacent pixels might not produce the desired result.
 
 # Why?
 
-Large amount of software processes raster images with interpolation. That mean that software will try to make soft color transition between adjacent pixels. Usually, such behavior is undesirable with small sized images and especially pixel art pictures as they become to blurry. To solve that problem you can use vectorized version of your image.
-
-> Although some applications allow to disable interpolation, that almost always requires tweaking default rendering behavior.
+Large amount of software processes raster images with interpolation. In other words application will try to make color transition between adjacent pixels. Usually, such behavior is undesirable with small sized images and especially pixel art pictures as they become blurry. To solve that problem you can use vectorized version of your image.
 
 # How does it work?
 
-Currently tool can convert images only to svg using one of the following methods
+There are several methods of vectorization you can use. They vary in speed, produced file structure and its size. Nevertheless they all use `<path/>` tag which allows to group all same colored shapes with fewest characters possible.
+
+## Vectorization Algorithms
 
 ### Square
 
-Simply takes every pixel from image and draws square for each. Produces large sized files but with perfect Width x Hight pixel matrix. Will probably work better with some legacy software.
+Simply draws square for each pixel from the image. Produces large sized files but with perfect pixel matrix.
 
 ![pixv_square](./assets/pixv_square.svg)
 
-```
-original (png): 268 bytes
-vectorized:     2577 bytes
-```
-
 ### Rectangle
 
-Similar to the previous one, but instead of drawing each pixel separately, it combines adjacent pixels of the same color in rectangular chunks. Usually generated files are much smaller.
+Combines adjacent pixels of the same color in rectangular chunks. Usually generated files are much smaller.
 
 ![pixv_rectangle](./assets/pixv_rectangle.svg)
 
-```
-original (png): 268 bytes
-vectorized:     1322 bytes
-```
-
 ### Path
 
-The third method is the most efficient and it is used by default. It draws path around chunks of the same color instead of breaking that chunk in a bunch of rectangles like Rectangle algorithm do.
+Draws path around chunks of the same color. The most efficient in terms of file size but has the slowest processing time.
 
 ![pixv_path](./assets/pixv_path.svg)
 
-```
-original (png): 268 bytes
-vectorized:     1833 bytes
-```
+## Size Comparison
 
-At the moment, Path puts inner shapes on top without cutting holes in the underneath shape. That makes grouping by color impossible. That also means that transparency is not gonna work as intended.
+```
+pixv.png         268 bytes
+--------------------------
+Square          2577 bytes
+Rectangle       1322 bytes
+Path            1176 bytes
+```
 
 # How to use?
 
@@ -70,9 +63,7 @@ For more information use `pixv help`
 
 # How to build?
 
-Make sure you have installed
-
-- `Go` version 1.22.4 or higher
+Make sure you have `Go` version 1.22.4 or higher.
 
 Use following commands to build the project
 

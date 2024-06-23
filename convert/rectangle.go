@@ -100,7 +100,6 @@ func Rectangle(img image.Image, scale uint) (string, error) {
 			anchorPos.y = -rect.pos.y - rect.height
 		}
 		svg.WriteString(`"/>`)
-
 	}
 
 	svg.WriteString("</svg>")
