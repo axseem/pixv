@@ -1,75 +1,116 @@
 <div align="center">
-    <img alt="pixv" width="285" src="./assets/logo.svg">
+    <img alt="pixv" src="./docs/pixv.svg">
     <p><i>Vectorize your pixel art</i></p>
 </div>
 
 # What?
 
-A CLI tool for converting raster pictures into SVG. The tool can convert any PNG/JPEG images but the first priority is pixel art. Using photos or any other images with a high pixel density, a wide range of colors, or small chunks of adjacent pixels might not produce the desired result.
+A CLI tool for converting raster images into SVG. The tool can convert any PNG/JPEG image, but its primary focus is pixel art. Using photos or other images with high pixel density or a wide range of colors might not produce the desired result.
 
 # Why?
 
-Large amount of software processes raster images with interpolation. In other words application will try to make color transition between adjacent pixels. Usually, such behavior is undesirable with small sized images and especially pixel art pictures as they become blurry. To solve that problem you can use vectorized version of your image.
+Much of the software that displays raster images uses interpolation. This means applications try to create smooth color transitions between adjacent pixels. For small images, and especially pixel art, this behavior is often undesirable as it makes them blurry. Converting a pixel-art image to SVG solves this problem by defining shapes with sharp, scalable edges.
 
 # How does it work?
 
-There are several methods of vectorization you can use. They vary in speed, produced file structure and its size. Nevertheless they all use `<path/>` tag which allows to group all same colored shapes with fewest characters possible.
+There are several vectorization strategies. They vary in speed, produced file size, and structure. All strategies use the `<path/>` tag, which allows shapes to be described with the fewest characters possible.
 
-## Vectorization Algorithms
+## Vectorization Strategies
 
 ### Square
 
-Simply draws square for each pixel from the image. Produces large sized files but with perfect pixel matrix.
+Simply draws a square for each pixel from the image. This method is very fast and produces a perfect pixel matrix, but the resulting file sizes are large.
 
-![pixv_square](./assets/pixv_square.svg)
+![pixv_square](./docs/strategy_square.svg)
 
 ### Rectangle
 
-Combines adjacent pixels of the same color in rectangular chunks. Usually generated files are much smaller.
+Combines adjacent pixels of the same color into rectangular chunks. Generated files are usually much smaller than the Square method, while still preserving great performance.
 
-![pixv_rectangle](./assets/pixv_rectangle.svg)
+![pixv_rectangle](./docs/strategy_rectangle.svg)
 
 ### Path
 
-Draws path around chunks of the same color. The most efficient in terms of file size but has the slowest processing time.
+Traces the outline of same-colored shapes. This is the most efficient method in terms of file size but has the slowest processing time.
 
-![pixv_path](./assets/pixv_path.svg)
+![pixv_path](./docs/strategy_path.svg)
 
 ## Size Comparison
 
+The [pixv logo](./docs/pixv.svg) is used for this comparison. Raster [images](./docs/) were exported from Krita, removing any metadata and always using lossless quality.
+
+**Raster vs Vector**
+
 ```
-pixv.png         268 bytes
---------------------------
-Square          2577 bytes
-Rectangle       1322 bytes
-Path            1176 bytes
+ Scale       1x     8x    32x   128x 
+-------------------------------------
+ PNG       251B   734B   4.5K    51K 
+ JPEG      1.2K   1.0K   9.7K   215K 
+-------------------------------------
+ SVG       1.3K   1.3K   1.3K   1.3K   
+```
+
+**Different Strategies**
+
+```
+ Scale                           Any 
+-------------------------------------
+ SVG(Path)                      1.3K 
+ SVG(Rectangle)                 1.7K 
+ SVG(Square)                    9.8K 
 ```
 
 # How to use?
 
-Following command will create svg variant of the given image in the current directory.
+The following command will create an SVG variant of the given image in the current directory.
 
 ```
 pixv image.png
 ```
 
-You can use flags to customize the result
+For more information use `pixv --help`:
 
-- `--method [method]`, `-m [method]` - Choose vectorization method. Accepts `square` or `rectangle`. Default method is `path`
+```
+NAME:
+   pixv - A CLI tool to vectorize pixel-art images
 
-- `--scale [multiplier]`, `-s [multiplier]` - Change the scale of the pixels. Currently accepts only `integers`. Default multiplier is `1`
+USAGE:
+   pixv [global options]
 
-For more information use `pixv help`
+VERSION:
+   v0.3.0
+
+AUTHOR:
+   axseem: max@axseem.me
+
+GLOBAL OPTIONS:
+   --method string, -m string  Vectorization method: path, rectangle, or square (default: "path")
+   --scale int, -s int         Scale multiplier for the output SVG (default: 1)
+   --output string, -o string  Output file path. Defaults to input with .svg extension
+   --help, -h                  show help
+   --version, -v               print the version
+```
+
+# How to install?
+
+```sh
+# Nix
+nix profile install github:axseem/pixv
+
+# Go
+go install github.com/axseem/pixv@latest
+```
+
+You can also run `pixv` directly from the GitHub repository without a permanent installation:
+
+```sh
+nix run github:axseem/pixv
+```
 
 # How to build?
 
-Make sure you have `Go` version 1.22.4 or higher.
-
-Use following commands to build the project
-
-```
+```sh
 git clone https://github.com/axseem/pixv.git
 cd pixv
 go build
 ```
-
